@@ -20,6 +20,7 @@ const readCounter = (callback) => {
     if (err) {
       callback(null, 0);
     } else {
+      console.log('fileData', Number(fileData));
       callback(null, Number(fileData));
     }
   });
@@ -38,9 +39,22 @@ const writeCounter = (count, callback) => {
 
 // Public API - Fix this function //////////////////////////////////////////////
 
-exports.getNextUniqueId = () => {
-  counter = counter + 1;
-  return zeroPaddedNumber(counter);
+exports.getNextUniqueId = (callback) => {
+  //add cb function
+  readCounter((err, num) => {
+    if (err) {
+      throw ('error reading counter');
+    } else {
+      counter = num + 1;
+      writeCounter(counter, (err, counterString) => {
+        if (err) {
+          throw ('error writing counter');
+        } else {
+          return callback(null, zeroPaddedNumber(counter));
+        }
+      });
+    }
+  });
 };
 
 
