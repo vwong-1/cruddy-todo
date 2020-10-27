@@ -20,7 +20,6 @@ const readCounter = (callback) => {
     if (err) {
       callback(null, 0);
     } else {
-      console.log('fileData', Number(fileData));
       callback(null, Number(fileData));
     }
   });
@@ -56,7 +55,6 @@ exports.getNextUniqueId = (callback) => {
     }
   });
 };
-
 
 
 // Configuration -- DO NOT MODIFY //////////////////////////////////////////////
