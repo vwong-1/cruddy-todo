@@ -33,36 +33,58 @@ exports.readAll = (callback) => {
     } else {
       items = {};
       // data = [];
-      files.forEach( (file) => {
-       file = file.slice(0,-4);
-      //  data.push({id: file, text: file})
-      items[file] = file;
+      files.forEach((file) => {
+        file = file.slice(0, -4);
+        //  data.push({id: file, text: file})
+        items[file] = file;
       });
       var data = _.map(items, (text, id) => {
         return { id, text };
       });
       callback(null, data);
     }
-  })
+  });
 };
 
 exports.readOne = (id, callback) => {
-  var text = items[id];
-  if (!text) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback(null, { id, text });
-  }
+  // var text = items[id];
+  // if (!text) {
+  // } else {
+  let file = path.join(exports.dataDir, `/${id}.txt`);
+  fs.readFile(file, 'utf8', (err, text) => {
+    if (err) {
+      callback(new Error(`No item with id: ${id}`));
+      // throw ('Error reading file')
+    } else {
+      callback(null, { id, text });
+    }
+  });
 };
 
 exports.update = (id, text, callback) => {
-  var item = items[id];
-  if (!item) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    items[id] = text;
-    callback(null, { id, text });
-  }
+  exports.readOne(id, (err, file) => {
+    if (err) {
+      callback(new Error(`No item with id: ${id}`));
+      // throw ('Error reading file')
+    } else {
+      let local = path.join(exports.dataDir, `/${id}.txt`);
+      fs.writeFile(local, text, (err) => {
+        if (err) {
+          throw ('Cannot write file');
+        } else {
+          callback(null, { id , text});
+        }
+      });
+    }
+  })
+
+  // var item = items[id];
+  // if (!item) {
+  //   callback(new Error(`No item with id: ${id}`));
+  // } else {
+  //   items[id] = text;
+  //   callback(null, { id, text });
+  // }
 };
 
 exports.delete = (id, callback) => {
