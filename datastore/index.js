@@ -1,8 +1,10 @@
+const Promise = require('bluebird');
 const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
 
+Promise.promisifyAll(fs);
 var items = {};
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
@@ -25,23 +27,44 @@ exports.create = (text, callback) => {
     }
   });
 };
+function funct(files) {
+  items = {};
+  files.forEach((file) => {
+    file = file.slice(0, -4);
+    items[file] = file;
+  })
+  var data = _.map(items, (text, id) => {
+    return { id, text };
+  });
+  return data;
+}
 
 exports.readAll = (callback) => {
+  var output;
   fs.readdir(exports.dataDir, (err, files) => {
     if (err) {
       throw ('error reading files');
     } else {
       items = {};
-      // data = [];
       files.forEach((file) => {
         file = file.slice(0, -4);
-        //  data.push({id: file, text: file})
         items[file] = file;
       });
       var data = _.map(items, (text, id) => {
-        return { id, text };
+        let file = path.join(exports.dataDir, `/${id}.txt`);
+        return new Promise(function (resolve, reject) {
+          fs.readFile(file, 'utf8', (err, text) => {
+            if (err) {
+              reject(err)
+            } else {
+              resolve({id, text});
+            }
+          });
+        });
       });
-      callback(null, data);
+      Promise.all(data).then((values) => {
+        callback(null, values);
+      })
     }
   });
 };
@@ -73,7 +96,7 @@ exports.update = (id, text, callback) => {
           throw ('Cannot write file');
         } else {
           items[id] = text;
-          callback(null, { id, text});
+          callback(null, { id, text });
         }
       });
     }
@@ -81,7 +104,7 @@ exports.update = (id, text, callback) => {
 };
 
 exports.delete = (id, callback) => {
-  var socal = path.join(exports.dataDir, `/${id}.txt`)
+  var socal = path.join(exports.dataDir, `/${id}.txt`);
   fs.unlink(socal, (err) => {
     if (err) {
       callback(new Error(`No item with id: ${id}`));
