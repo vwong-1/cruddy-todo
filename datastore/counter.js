@@ -49,7 +49,7 @@ exports.getNextUniqueId = (callback) => {
         if (err) {
           throw ('error writing counter');
         } else {
-          return callback(null, zeroPaddedNumber(counter));
+          return callback(null, counterString);
         }
       });
     }
